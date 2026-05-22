@@ -11,13 +11,14 @@ const navLinks = [
   { label: 'About', href: '#about' },
   { label: 'Skills', href: '#skills' },
   { label: 'Projects', href: '#projects' },
+  { label: 'Achievements', href: '#achievements' },
+  { label: 'Certifications', href: '#certifications' },
   { label: 'Contact', href: '#contact' },
 ];
 
 export default function Navbar({ about }: { about: About | null }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('hero');
   const { isSignedIn, user } = useUser();
   const isAdmin = user?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID;
 
@@ -99,7 +100,6 @@ export default function Navbar({ about }: { about: About | null }) {
             </SignInButton>
           )}
 
-          {/* Mobile menu toggle */}
           <button
             className="md:hidden text-slate-400 hover:text-white"
             onClick={() => setMobileOpen(!mobileOpen)}

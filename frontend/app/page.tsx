@@ -16,7 +16,8 @@ import ScrollProgress from '@/components/animations/ScrollProgress';
 import CursorGlow from '@/components/animations/CursorGlow';
 import LoadingScreen from '@/components/animations/LoadingScreen';
 import ChatWidget from '@/components/chat/ChatWidget';
-
+import AchievementsSection from '@/components/sections/AchievementsSection';
+import CertificationsSection from '@/components/sections/CertificationsSection';
 export default function HomePage() {
   const { user, isLoaded } = useUser();
   const [about, setAbout] = useState<About | null>(null);
@@ -59,6 +60,8 @@ export default function HomePage() {
       <AboutSection about={about} />
       <SkillsSection skills={skills} />
       <ProjectsSection projects={projects} />
+      <AchievementsSection />
+      <CertificationsSection />
       <ContactSection about={about} />
       <FooterSection about={about} />
       {/* Only show chat bubble to non-admin users */}

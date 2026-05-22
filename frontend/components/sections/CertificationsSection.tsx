@@ -15,6 +15,17 @@ export default function CertificationsSection() {
     api.get('/api/certifications').then((r) => setCerts(r.data.data || [])).catch(() => {});
   }, []);
 
+  // Handler to open the certificate link or image when the card is clicked
+  const handleCertClick = (cert: Certification) => {
+    const targetUrl = (cert.credential_url && cert.credential_url !== 'NA') 
+      ? cert.credential_url 
+      : cert.image_url;
+      
+    if (targetUrl) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   if (certs.length === 0) return null;
 
   return (
@@ -33,59 +44,61 @@ export default function CertificationsSection() {
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {certs.map((cert, i) => (
-            <motion.div
-              key={cert.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.08 }}
-              whileHover={{ y: -4 }}
-              className="glass rounded-2xl overflow-hidden border border-white/5 hover:border-emerald-accent/20 transition-all group"
-            >
-              {/* Cert image/thumbnail */}
-              <div className="h-40 bg-gradient-to-br from-emerald-accent/10 to-electric-blue/10 overflow-hidden relative">
-                {cert.image_url ? (
-                  <img
-                    src={cert.image_url}
-                    alt={cert.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Award size={48} className="text-emerald-accent opacity-30" />
-                  </div>
-                )}
-              </div>
+          {certs.map((cert, i) => {
+            const hasLink = (cert.credential_url && cert.credential_url !== 'NA') || cert.image_url;
 
-              <div className="p-5">
-                <h3 className="font-semibold text-white text-sm mb-1 group-hover:text-emerald-accent transition-colors">
-                  {cert.title}
-                </h3>
-                <p className="text-emerald-accent text-xs font-medium mb-2">{cert.issuer}</p>
-
-                <div className="flex items-center gap-1 text-slate-500 text-xs mb-3">
-                  <Calendar size={11} />
-                  {cert.issue_date}
-                  {cert.expiry_date && ` · Expires ${cert.expiry_date}`}
+            return (
+              <motion.div
+                key={cert.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: i * 0.08 }}
+                whileHover={{ y: -4 }}
+                onClick={() => handleCertClick(cert)}
+                // Added cursor-pointer conditionally so the mouse changes on hover
+                className={`glass rounded-2xl overflow-hidden border border-white/5 hover:border-emerald-accent/20 transition-all group ${hasLink ? 'cursor-pointer' : ''}`}
+              >
+                {/* Cert image/thumbnail */}
+                <div className="h-40 bg-gradient-to-br from-emerald-accent/10 to-electric-blue/10 overflow-hidden relative">
+                  {cert.image_url ? (
+                    <img
+                      src={cert.image_url}
+                      alt={cert.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Award size={48} className="text-emerald-accent opacity-30" />
+                    </div>
+                  )}
                 </div>
 
-                {cert.credential_id && (
-                  <p className="text-slate-600 text-xs font-mono mb-3">ID: {cert.credential_id}</p>
-                )}
+                <div className="p-5">
+                  <h3 className="font-semibold text-white text-sm mb-1 group-hover:text-emerald-accent transition-colors">
+                    {cert.title}
+                  </h3>
+                  <p className="text-emerald-accent text-xs font-medium mb-2">{cert.issuer}</p>
 
-                {cert.credential_url && cert.credential_url !== 'NA' && (
-                  <a
-                    href={cert.credential_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-electric-blue hover:text-neon-purple transition-colors"
-                  >
-                    <ExternalLink size={11} /> View Certificate
-                  </a>
-                )}
-              </div>
-            </motion.div>
-          ))}
+                  <div className="flex items-center gap-1 text-slate-500 text-xs mb-3">
+                    <Calendar size={11} />
+                    {cert.issue_date}
+                    {cert.expiry_date && ` · Expires ${cert.expiry_date}`}
+                  </div>
+
+                  {cert.credential_id && (
+                    <p className="text-slate-600 text-xs font-mono mb-3">ID: {cert.credential_id}</p>
+                  )}
+
+                  {/* Changed from <a> to <div> to avoid nested HTML link conflicts */}
+                  {cert.credential_url && cert.credential_url !== 'NA' && (
+                    <div className="flex items-center gap-1.5 text-xs text-electric-blue group-hover:text-neon-purple transition-colors">
+                      <ExternalLink size={11} /> View Certificate
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -25,9 +25,7 @@ export default function CertificationsTab() {
   const [saving, setSaving] = useState(false);
   const [imgUploading, setImgUploading] = useState(false);
 
-  useEffect(() => {
-    fetchItems();
-  }, []);
+  useEffect(() => { fetchItems(); }, []);
 
   const fetchItems = async () => {
     try {
@@ -58,12 +56,11 @@ export default function CertificationsTab() {
     }
     setSaving(true);
     try {
-      const payload = { ...form };
       if (editing) {
-        await api.put(`/api/certifications/${editing}`, payload);
+        await api.put(`/api/certifications/${editing}`, { ...form });
         toast.success('Certification updated!');
       } else {
-        await api.post('/api/certifications', payload);
+        await api.post('/api/certifications', { ...form });
         toast.success('Certification added!');
       }
       setShowForm(false);
@@ -82,12 +79,10 @@ export default function CertificationsTab() {
     try {
       const fd = new FormData();
       fd.append('image', file);
-      // Note: Make sure this is the correct endpoint for certification images
-      const r = await api.put('/api/about/profile-image', fd, {
+      const r = await api.post('/api/upload', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      // Ensure the returned key matches your API response (e.g., profile_image_url vs image_url)
-      setForm((prev: any) => ({ ...prev, image_url: r.data.data.profile_image_url }));
+      setForm((prev: any) => ({ ...prev, image_url: r.data.data.url }));
       toast.success('Image uploaded!');
     } catch {
       toast.error('Upload failed');
@@ -128,7 +123,6 @@ export default function CertificationsTab() {
         </motion.button>
       </div>
 
-      {/* Grid */}
       {items.length === 0 ? (
         <div className="glass rounded-2xl p-12 border border-white/5 text-center">
           <Award size={40} className="text-emerald-accent/30 mx-auto mb-3" />
@@ -148,31 +142,22 @@ export default function CertificationsTab() {
               key={item.id}
               className="glass rounded-2xl overflow-hidden border border-white/5 hover:border-emerald-accent/20 transition-all"
             >
-              {/* Image */}
-              <div className="h-36 bg-gradient-to-br from-emerald-accent/10 to-electric-blue/10 overflow-hidden relative">
+              <div className="h-36 bg-gradient-to-br from-emerald-accent/10 to-electric-blue/10 overflow-hidden">
                 {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Award size={40} className="text-emerald-accent opacity-20" />
                   </div>
                 )}
               </div>
-
               <div className="p-4">
                 <h3 className="text-white text-sm font-semibold line-clamp-1 mb-1">{item.title}</h3>
                 <p className="text-emerald-accent text-xs font-medium mb-1">{item.issuer}</p>
                 <p className="text-slate-500 text-xs mb-3">
-                  {item.issue_date}
-                  {item.expiry_date && ` · Expires ${item.expiry_date}`}
+                  {item.issue_date}{item.expiry_date && ` · Expires ${item.expiry_date}`}
                 </p>
-
                 {item.credential_url && item.credential_url !== 'NA' && (
-                  /* FIXED: Added missing "<a" here */
                   <a
                     href={item.credential_url}
                     target="_blank"
@@ -182,7 +167,6 @@ export default function CertificationsTab() {
                     <ExternalLink size={10} /> View Certificate
                   </a>
                 )}
-
                 <div className="flex gap-2">
                   <button
                     onClick={() => openEdit(item)}
@@ -203,7 +187,6 @@ export default function CertificationsTab() {
         </div>
       )}
 
-      {/* Form Modal */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -222,20 +205,13 @@ export default function CertificationsTab() {
                 <h3 className="font-display text-sm font-bold text-white">
                   {editing ? 'Edit Certification' : 'New Certification'}
                 </h3>
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="text-slate-400 hover:text-white transition-colors"
-                >
+                <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-white transition-colors">
                   <X size={18} />
                 </button>
               </div>
-
               <div className="p-5 space-y-4">
-                {/* Image upload */}
                 <div>
-                  <label className="text-xs text-slate-500 font-mono mb-1.5 block">
-                    Certificate Image / Badge
-                  </label>
+                  <label className="text-xs text-slate-500 font-mono mb-1.5 block">Certificate Image / Badge</label>
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-accent/10 to-electric-blue/10 overflow-hidden border border-white/10 flex-shrink-0">
                       {form.image_url ? (
@@ -262,8 +238,6 @@ export default function CertificationsTab() {
                     </div>
                   </div>
                 </div>
-
-                {/* Fields */}
                 {[
                   { key: 'title', label: 'Certificate Title *', placeholder: 'AWS Solutions Architect' },
                   { key: 'issuer', label: 'Issuer *', placeholder: 'Amazon Web Services' },
@@ -282,7 +256,6 @@ export default function CertificationsTab() {
                     />
                   </div>
                 ))}
-
                 <div className="flex gap-3 pt-2">
                   <motion.button
                     onClick={save}

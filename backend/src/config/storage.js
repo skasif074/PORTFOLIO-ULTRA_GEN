@@ -3,12 +3,11 @@ import { supabaseAdmin } from './supabase.js';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
-// Use memory storage — files go to buffer, then we push to Supabase
 const memoryStorage = multer.memoryStorage();
 
 export const uploadImage = multer({
   storage: memoryStorage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
     if (allowed.includes(file.mimetype)) {
@@ -21,7 +20,7 @@ export const uploadImage = multer({
 
 export const uploadResume = multer({
   storage: memoryStorage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
+  limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
       cb(null, true);
@@ -31,8 +30,6 @@ export const uploadResume = multer({
   },
 });
 
-// Upload a file buffer to Supabase Storage
-// Returns the public URL
 export const uploadToSupabase = async (file, bucket = 'images', folder = '') => {
   try {
     const ext = path.extname(file.originalname) || '.jpg';
@@ -47,7 +44,6 @@ export const uploadToSupabase = async (file, bucket = 'images', folder = '') => 
 
     if (error) throw error;
 
-    // Get public URL
     const { data: urlData } = supabaseAdmin.storage
       .from(bucket)
       .getPublicUrl(fileName);
@@ -59,11 +55,8 @@ export const uploadToSupabase = async (file, bucket = 'images', folder = '') => 
   }
 };
 
-// Delete a file from Supabase Storage by its public URL
 export const deleteFromSupabase = async (publicUrl, bucket = 'images') => {
   try {
-    // Extract file path from URL
-    // URL format: https://xxx.supabase.co/storage/v1/object/public/images/folder/file.jpg
     const urlParts = publicUrl.split(`/storage/v1/object/public/${bucket}/`);
     if (urlParts.length < 2) return;
 
@@ -76,6 +69,5 @@ export const deleteFromSupabase = async (publicUrl, bucket = 'images') => {
     if (error) throw error;
   } catch (err) {
     console.error('Supabase Storage delete error:', err);
-    // Don't throw — deletion failures shouldn't crash the main request
   }
 };

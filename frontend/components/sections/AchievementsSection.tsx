@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import api from '@/lib/api';
 
 interface AchievementEvent {
@@ -25,9 +25,32 @@ export default function AchievementsSection() {
     api.get('/api/achievements').then((r) => setAchievements(r.data.data || [])).catch(() => {});
   }, []);
 
-  const scroll = (dir: 'left' | 'right') => {
-    if (!sliderRef.current) return;
-    sliderRef.current.scrollBy({ left: dir === 'left' ? -320 : 320, behavior: 'smooth' });
+  // Auto-slide Effect (5s interval)
+  useEffect(() => {
+    const activeAchievement = achievements[activeIdx];
+    // Stop the interval if there's only 1 (or 0) photos
+    if (!activeAchievement?.photos || activeAchievement.photos.length <= 1) return;
+
+    const interval = setInterval(() => {
+      if (!sliderRef.current) return;
+      const slider = sliderRef.current;
+      const isAtEnd = Math.ceil(slider.scrollLeft + slider.clientWidth) >= slider.scrollWidth - 10;
+
+      if (isAtEnd) {
+        slider.scrollTo({ left: 0, behavior: 'smooth' }); // Loop back to start
+      } else {
+        slider.scrollTo({ left: slider.scrollLeft + 304, behavior: 'smooth' }); // Scroll one image width
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [activeIdx, achievements]);
+
+  // Handle tab switching
+  const handleTabChange = (idx: number) => {
+    setActiveIdx(idx);
+    // Instantly reset scroll to start when switching tabs
+    if (sliderRef.current) sliderRef.current.scrollTo({ left: 0 });
   };
 
   if (achievements.length === 0) return null;
@@ -52,7 +75,7 @@ export default function AchievementsSection() {
           {achievements.map((ach, i) => (
             <motion.button
               key={ach.id}
-              onClick={() => setActiveIdx(i)}
+              onClick={() => handleTabChange(i)}
               whileHover={{ scale: 1.05 }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 activeIdx === i
@@ -92,25 +115,14 @@ export default function AchievementsSection() {
 
             {/* Photo slider */}
             {achievements[activeIdx].photos && achievements[activeIdx].photos!.length > 0 ? (
-              <div className="relative">
-                {/* Scroll buttons */}
-                <button
-                  onClick={() => scroll('left')}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 rounded-xl glass border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={() => scroll('right')}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 rounded-xl glass border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all"
-                >
-                  <ChevronRight size={18} />
-                </button>
-
-                {/* Scrollable photo strip */}
+              
+              // Centering wrapper: text-center on parent + inline-flex on child
+              <div className="relative w-full max-w-5xl mx-auto text-center mt-6">
+                
+                {/* Auto-sliding container (No manual buttons) */}
                 <div
                   ref={sliderRef}
-                  className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
+                  className="inline-flex gap-4 overflow-x-auto max-w-full scrollbar-hide py-4 text-left"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                   {achievements[activeIdx].photos!.map((photo, i) => (
@@ -130,6 +142,7 @@ export default function AchievementsSection() {
                     </motion.div>
                   ))}
                 </div>
+
               </div>
             ) : (
               <div className="text-center py-12 glass rounded-2xl border border-white/5">

@@ -61,12 +61,7 @@ export default function AboutSection({ about }: { about: About | null }) {
                 { icon: MapPin, label: 'Location', value: about?.location || 'India', color: 'text-electric-blue' },
                 { icon: Mail, label: 'Email', value: about?.email || 'asif@email.com', color: 'text-neon-purple' },
                 { icon: Target, label: 'Focus', value: 'AI/ML + Web Dev', color: 'text-cyan-glow' },
-                
-                /* 
-                  FUTURE UPDATE: Uncomment the line below when you want to show your Years of Experience card 
-                */
                 // { icon: Calendar, label: 'Experience', value: `${about?.years_of_experience || 0}+ Years`, color: 'text-emerald-accent' },
-                
               ].map((item) => (
                 <div key={item.label} className="glass rounded-xl p-4 border border-white/5 hover:border-electric-blue/20 transition-all group">
                   <item.icon size={16} className={`${item.color} mb-2`} />
@@ -96,20 +91,7 @@ export default function AboutSection({ about }: { about: About | null }) {
           {/* Right — Timeline */}
           <div className="space-y-8">
             
-            {/* 
-              =====================================================================
-              FUTURE UPDATE: EXPERIENCE SECTION
-              =====================================================================
-              This section is currently commented out because there is no professional
-              experience to display yet. 
-
-              HOW TO UNCOMMENT IN THE FUTURE:
-              1. Remove the opening bracket-star sequence right below this message.
-              2. Remove the star-bracket sequence at the very end of this section.
-              3. Ensure your admin dashboard has experience data entered.
-              =====================================================================
-            */}
-            {/* 
+            {/* Experience */}
             {(about?.experience?.length ?? 0) > 0 && (
               <motion.div
                 initial={{ opacity: 0, x: 40 }}
@@ -125,8 +107,8 @@ export default function AboutSection({ about }: { about: About | null }) {
                   {about?.experience?.map((exp, i) => (
                     <motion.div
                       key={exp.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={inView ? { opacity: 1, y: 0 } : {}}
+                      initial={{ opacity: 0, x: 20 }} // Horizontal animation initial state
+                      animate={inView ? { opacity: 1, x: 0 } : {}} // Horizontal animation target state
                       transition={{ delay: 0.4 + i * 0.1 }}
                       className="pl-8 relative"
                     >
@@ -153,7 +135,6 @@ export default function AboutSection({ about }: { about: About | null }) {
                 </div>
               </motion.div>
             )}
-            */}
 
             {/* Education */}
             {(about?.education?.length ?? 0) > 0 && (

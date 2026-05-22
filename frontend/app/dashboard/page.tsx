@@ -17,8 +17,8 @@ import ProjectsTab from '@/components/dashboard/ProjectsTab';
 import SkillsTab from '@/components/dashboard/SkillsTab';
 import MessagesTab from '@/components/dashboard/MessagesTab';
 import ResumeTab from '@/components/dashboard/ResumeTab';
-import AchievementsSection from '@/components/sections/AchievementsSection';
-import CertificationsSection from '@/components/sections/CertificationsSection';
+import AchievementsTab from '@/components/dashboard/AchievementsTab';
+import CertificationsTab from '@/components/dashboard/CertificationsTab';
 
 const tabs = [
   { id: 'overview',       label: 'Overview',       icon: LayoutDashboard },
@@ -57,8 +57,8 @@ export default function DashboardPage() {
       case 'about':          return <AboutTab />;
       case 'projects':       return <ProjectsTab />;
       case 'skills':         return <SkillsTab />;
-      case 'achievements':   return <AchievementsSection />;
-      case 'certifications': return <CertificationsSection />;
+      case 'achievements':   return <AchievementsTab />;
+      case 'certifications': return <CertificationsTab />;
       case 'messages':       return <MessagesTab />;
       case 'resume':         return <ResumeTab />;
       default:               return <OverviewTab />;

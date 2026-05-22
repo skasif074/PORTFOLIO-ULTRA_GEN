@@ -12,7 +12,7 @@ import messageRoutes from './routes/message.routes.js';
 import contentRoutes from './routes/content.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
-
+import uploadRoutes from './routes/upload.router.js';
 dotenv.config();
 
 const app = express();
@@ -43,7 +43,7 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api', contentRoutes);
 app.use('/api/analytics', analyticsRoutes);
-
+app.use('/api/upload', uploadRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
