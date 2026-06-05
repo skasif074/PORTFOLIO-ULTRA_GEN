@@ -84,9 +84,18 @@ export default function ProjectsTab() {
   };
 
   const openEdit = (p: Project) => {
+    // Explicitly mapping fields resolves the TS error and prevents excess properties (like id) from entering the form state
     setForm({
-      ...p,
+      title: p.title,
+      description: p.description,
+      long_description: p.long_description || '',
       tech_stack: Array.isArray(p.tech_stack) ? p.tech_stack.join(', ') : (p.tech_stack || ''),
+      github_url: p.github_url || '',
+      live_url: p.live_url || '',
+      category: p.category,
+      is_featured: p.is_featured,
+      status: p.status,
+      sort_order: p.sort_order,
     });
     setEditing(p.id);
     setThumb(null);
