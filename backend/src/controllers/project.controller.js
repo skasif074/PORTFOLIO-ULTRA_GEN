@@ -30,7 +30,7 @@ export const getProjects = async (req, res, next) => {
         total: count,
         page: parseInt(page),
         limit: parseInt(limit),
-        totalPages: Math.ceil(count / parseInt(limit)),
+        totalPages: Math.ceil((count || 0) / parseInt(limit)),
       },
     });
   } catch (err) { next(err); }
@@ -41,7 +41,7 @@ export const getProjectCategories = async (req, res, next) => {
   try {
     const { data, error } = await supabase.from('projects').select('category');
     if (error) throw error;
-    const categories = ['all', ...new Set(data.map((p) => p.category))];
+    const categories = ['all', ...new Set(data.map((p) => p.category).filter(Boolean))];
     res.json({ success: true, data: categories });
   } catch (err) { next(err); }
 };
@@ -49,23 +49,50 @@ export const getProjectCategories = async (req, res, next) => {
 // GET /api/projects/:id - Public
 export const getProjectById = async (req, res, next) => {
   try {
-    const { data, error } = await supabase.from('projects').select('*').eq('id', req.params.id).single();
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
     if (error) throw error;
 
-    // Track view (fire and forget)
-    supabaseAdmin.from('project_views').insert([{ project_id: req.params.id, ip_address: req.ip }])
-      .then(() => supabaseAdmin.from('projects').update({ views: (data.views || 0) + 1 }).eq('id', req.params.id));
+    // Track view fire and forget
+    supabaseAdmin
+      .from('project_views')
+      .insert([{ project_id: req.params.id, ip_address: req.ip }])
+      .then(() =>
+        supabaseAdmin
+          .from('projects')
+          .update({ views: (data.views || 0) + 1 })
+          .eq('id', req.params.id)
+      );
 
     res.json({ success: true, data });
   } catch (err) { next(err); }
+};
+
+// Helper to safely parse arrays
+const parseArray = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed === 'undefined' || trimmed === 'null') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      // treat as comma separated
+      return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
 };
 
 // POST /api/projects - Admin only
 export const createProject = async (req, res, next) => {
   try {
     let thumbnailUrl = req.body.thumbnail_url || '';
-
-    // Upload thumbnail if file provided
     if (req.file) {
       thumbnailUrl = await uploadToSupabase(req.file, 'images', 'projects');
     }
@@ -74,18 +101,22 @@ export const createProject = async (req, res, next) => {
       title: req.body.title,
       description: req.body.description,
       long_description: req.body.long_description || '',
-      tech_stack: typeof req.body.tech_stack === 'string' ? JSON.parse(req.body.tech_stack) : req.body.tech_stack || [],
+      tech_stack: parseArray(req.body.tech_stack),
       github_url: req.body.github_url || '',
       live_url: req.body.live_url || '',
       thumbnail_url: thumbnailUrl,
-      screenshots: typeof req.body.screenshots === 'string' ? JSON.parse(req.body.screenshots) : req.body.screenshots || [],
+      screenshots: parseArray(req.body.screenshots),
       category: req.body.category || 'Web',
       is_featured: req.body.is_featured === 'true' || req.body.is_featured === true,
       status: req.body.status || 'completed',
       sort_order: parseInt(req.body.sort_order) || 0,
     };
 
-    const { data, error } = await supabaseAdmin.from('projects').insert([projectData]).select().single();
+    const { data, error } = await supabaseAdmin
+      .from('projects')
+      .insert([projectData])
+      .select()
+      .single();
     if (error) throw error;
 
     await logAdminActivity('CREATE', 'project', data.id, `Created: ${data.title}`);
@@ -97,19 +128,54 @@ export const createProject = async (req, res, next) => {
 export const updateProject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updateData = { ...req.body };
 
+    // Build update object safely
+    const updateData = {};
+
+    if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.description !== undefined) updateData.description = req.body.description;
+    if (req.body.long_description !== undefined) updateData.long_description = req.body.long_description;
+    if (req.body.github_url !== undefined) updateData.github_url = req.body.github_url;
+    if (req.body.live_url !== undefined) updateData.live_url = req.body.live_url;
+    if (req.body.category !== undefined) updateData.category = req.body.category;
+    if (req.body.status !== undefined) updateData.status = req.body.status;
+    if (req.body.sort_order !== undefined) updateData.sort_order = parseInt(req.body.sort_order) || 0;
+
+    if (req.body.is_featured !== undefined) {
+      updateData.is_featured = req.body.is_featured === 'true' || req.body.is_featured === true;
+    }
+
+    if (req.body.tech_stack !== undefined) {
+      updateData.tech_stack = parseArray(req.body.tech_stack);
+    }
+
+    if (req.body.screenshots !== undefined) {
+      updateData.screenshots = parseArray(req.body.screenshots);
+    }
+
+    // Handle new thumbnail upload
     if (req.file) {
-      // Delete old thumbnail
-      const { data: old } = await supabaseAdmin.from('projects').select('thumbnail_url').eq('id', id).single();
-      if (old?.thumbnail_url) await deleteFromSupabase(old.thumbnail_url, 'images');
+      const { data: old } = await supabaseAdmin
+        .from('projects')
+        .select('thumbnail_url')
+        .eq('id', id)
+        .single();
+      if (old?.thumbnail_url) {
+        await deleteFromSupabase(old.thumbnail_url, 'images').catch(() => {});
+      }
       updateData.thumbnail_url = await uploadToSupabase(req.file, 'images', 'projects');
     }
 
-    if (typeof updateData.tech_stack === 'string') updateData.tech_stack = JSON.parse(updateData.tech_stack);
-    if (typeof updateData.screenshots === 'string') updateData.screenshots = JSON.parse(updateData.screenshots);
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: 'No fields to update' });
+    }
 
-    const { data, error } = await supabaseAdmin.from('projects').update(updateData).eq('id', id).select().single();
+    const { data, error } = await supabaseAdmin
+      .from('projects')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
     if (error) throw error;
 
     await logAdminActivity('UPDATE', 'project', id, `Updated: ${data.title}`);
@@ -121,8 +187,15 @@ export const updateProject = async (req, res, next) => {
 export const deleteProject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { data: project } = await supabaseAdmin.from('projects').select('thumbnail_url').eq('id', id).single();
-    if (project?.thumbnail_url) await deleteFromSupabase(project.thumbnail_url, 'images');
+    const { data: project } = await supabaseAdmin
+      .from('projects')
+      .select('thumbnail_url')
+      .eq('id', id)
+      .single();
+
+    if (project?.thumbnail_url) {
+      await deleteFromSupabase(project.thumbnail_url, 'images').catch(() => {});
+    }
 
     const { error } = await supabaseAdmin.from('projects').delete().eq('id', id);
     if (error) throw error;
