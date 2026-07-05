@@ -3,11 +3,27 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Send, Mail, MapPin, MessageSquare, Loader2 } from 'lucide-react';
+import { Send, Mail, MapPin, MessageSquare, Loader2, Key } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useUser, SignInButton } from '@clerk/nextjs';
 import api from '@/lib/api';
 import { About } from '@/types';
+
+function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="mb-12 md:mb-16">
+      <motion.div 
+        className="inline-block bg-[#BFFF00] text-black font-bold text-xs md:text-sm mb-4 px-3 py-1 tracking-[0.2em] uppercase border-2 border-[#BFFF00]"
+      >
+        {subtitle}
+      </motion.div>
+      <h2 className="font-black text-5xl md:text-7xl lg:text-8xl tracking-tighter uppercase text-white leading-none">
+        {title}
+      </h2>
+      <div className="mt-6 w-full max-w-sm h-2 bg-[#BFFF00]" />
+    </div>
+  );
+}
 
 export default function ContactSection({ about }: { about: About | null }) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 });
@@ -22,11 +38,11 @@ export default function ContactSection({ about }: { about: About | null }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isSignedIn) {
-      toast.error('Please sign in to send a message');
+      toast.error('Authentication required to transmit data.');
       return;
     }
     if (!form.message) {
-      toast.error('Please write a message');
+      toast.error('Message payload cannot be empty.');
       return;
     }
     setLoading(true);
@@ -38,141 +54,167 @@ export default function ContactSection({ about }: { about: About | null }) {
         message: form.message,
         clerk_user_id: user?.id,
       });
-      toast.success("Message sent! I'll get back to you soon 🚀");
+      toast.success("Transmission successful. Awaiting response.");
       setForm({ name: '', email: '', subject: '', message: '' });
     } catch (err: any) {
-      toast.error(err.message || 'Failed to send message');
+      toast.error(err.message || 'Transmission failed.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section id="contact" ref={ref} className="relative py-32 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-glow/3 to-transparent" />
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
+    <section id="contact" ref={ref} className="relative py-24 md:py-32 bg-black text-white font-sans selection:bg-[#BFFF00] selection:text-black">
+      
+      {/* Brutalist Background Grid */}
+      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:40px_40px]" />
+
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          className="text-center mb-16"
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <p className="text-cyan-glow font-mono text-sm mb-3 tracking-widest uppercase">// get in touch</p>
-          <h2 className="font-display text-4xl lg:text-5xl font-black gradient-text">Contact Me</h2>
-          <div className="mt-4 mx-auto w-24 h-0.5 bg-gradient-to-r from-electric-blue to-neon-purple rounded-full" />
+          <SectionTitle title="Communicate" subtitle="// GET IN TOUCH" />
         </motion.div>
 
-        <div className="grid lg:grid-cols-5 gap-12 items-start">
-          {/* Left info */}
+        <div className="grid lg:grid-cols-12 gap-12 items-start mt-12">
+          
+          {/* LEFT: Info Panel */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ delay: 0.2 }}
-            className="lg:col-span-2 space-y-6"
+            className="lg:col-span-5 space-y-6"
           >
-            <div className="glass rounded-2xl p-6 gradient-border">
-              <h3 className="font-display text-xl font-bold text-white mb-4">Let's Build Something</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Open to internship opportunities, freelance projects, and collaborations.
-                Sign in and send me a message — I'll reply directly in the chat bubble!
+            <div className="bg-[#BFFF00] border-4 border-[#BFFF00] p-8 shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] text-black">
+              <h3 className="font-black text-3xl md:text-4xl uppercase tracking-tighter mb-4 border-b-4 border-black pb-4">
+                Initialize Connect
+              </h3>
+              <p className="font-bold text-sm leading-relaxed opacity-80">
+                Open to internship opportunities, freelance architecture, and system collaborations.
+                Authenticate your session to open a direct comm-link.
               </p>
             </div>
 
-            {[
-              { icon: Mail, label: 'Email', value: about?.email || 'your@email.com', color: 'text-electric-blue', bg: 'bg-electric-blue/10' },
-              { icon: MapPin, label: 'Location', value: about?.location || 'India', color: 'text-neon-purple', bg: 'bg-neon-purple/10' },
-              { icon: MessageSquare, label: 'Response Time', value: 'Within 24 hours', color: 'text-cyan-glow', bg: 'bg-cyan-glow/10' },
-            ].map((item) => (
-              <motion.div
-                key={item.label}
-                whileHover={{ x: 4 }}
-                className="flex items-center gap-4 glass rounded-xl p-4 border border-white/5 hover:border-electric-blue/20 transition-all"
-              >
-                <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center`}>
-                  <item.icon size={18} className={item.color} />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500">{item.label}</p>
-                  <p className="text-sm text-slate-300 font-medium">{item.value}</p>
-                </div>
-              </motion.div>
-            ))}
+            <div className="space-y-4 pt-4">
+              {[
+                { icon: Mail, label: 'Email', value: about?.email || 'skasifx86@gmail.com' },
+                { icon: MapPin, label: 'Location', value: about?.location || 'India' },
+                { icon: MessageSquare, label: 'Ping Latency', value: '< 24 Hours' },
+              ].map((item) => (
+                <motion.div
+                  key={item.label}
+                  whileHover={{ x: 8 }}
+                  className="flex items-center gap-6 bg-black border-4 border-white p-4 hover:bg-white hover:text-black transition-colors group cursor-default"
+                >
+                  <div className="w-12 h-12 bg-white flex items-center justify-center border-4 border-white group-hover:border-black group-hover:bg-black transition-colors shrink-0">
+                    <item.icon size={24} className="text-black group-hover:text-white stroke-[3px]" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-1">{item.label}</p>
+                    <p className="text-base font-black uppercase tracking-tight">{item.value}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
 
-          {/* Right form */}
+          {/* RIGHT: Form / Auth Panel */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ delay: 0.3 }}
-            className="lg:col-span-3"
+            className="lg:col-span-7"
           >
             {!isSignedIn ? (
-              /* Not signed in — show sign in prompt */
-              <div className="glass rounded-2xl p-12 gradient-border text-center space-y-5">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-electric-blue/20 to-neon-purple/20 flex items-center justify-center mx-auto">
-                  <MessageSquare size={28} className="text-electric-blue" />
+              
+              /* --- UNAUTHENTICATED STATE --- */
+              <div className="bg-white border-4 border-white p-10 md:p-16 text-black shadow-[12px_12px_0px_0px_rgba(191,255,0,1)] text-center space-y-8 h-full flex flex-col justify-center items-center">
+                <div className="w-24 h-24 bg-black flex items-center justify-center border-4 border-black shadow-[6px_6px_0px_0px_rgba(191,255,0,1)]">
+                  <Key size={48} className="text-[#BFFF00] stroke-[2px]" />
                 </div>
                 <div>
-                  <h3 className="font-display text-xl font-bold text-white mb-2">Sign in to send a message</h3>
-                  <p className="text-slate-400 text-sm">
-                    Sign in with Google to send me a message and get a reply directly in the chat bubble.
+                  <h3 className="font-black text-3xl uppercase tracking-tighter mb-4">Handshake Required</h3>
+                  <p className="font-bold text-sm text-black/60 max-w-sm mx-auto">
+                    System requires Google authentication to establish a secure, spam-free communication channel.
                   </p>
                 </div>
                 <SignInButton mode="modal">
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-8 py-3 rounded-xl bg-gradient-to-r from-electric-blue to-neon-purple text-white font-semibold glow-blue"
+                    whileHover={{ y: -4, x: -4, boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)" }}
+                    className="px-10 py-5 bg-[#BFFF00] border-4 border-black text-black font-black uppercase tracking-widest transition-all"
                   >
-                    Sign In with Google
+                    Authenticate Session
                   </motion.button>
                 </SignInButton>
               </div>
+
             ) : (
-              /* Signed in — show form */
-              <form onSubmit={handleSubmit} className="glass rounded-2xl p-8 gradient-border space-y-5">
-                {/* Signed in as */}
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-accent/5 border border-emerald-accent/20">
-                  <img src={user?.imageUrl} className="w-8 h-8 rounded-full" alt="avatar" />
+
+              /* --- AUTHENTICATED FORM STATE --- */
+              <form onSubmit={handleSubmit} className="bg-white border-4 border-white p-8 md:p-10 text-black shadow-[12px_12px_0px_0px_rgba(191,255,0,1)] space-y-6">
+                
+                {/* User Identity Block */}
+                <div className="flex items-center gap-4 bg-gray-100 border-4 border-black p-4">
+                  <img src={user?.imageUrl} className="w-12 h-12 border-2 border-black grayscale object-cover" alt="User Avatar" />
                   <div>
-                    <p className="text-emerald-accent text-xs font-medium">Signed in as</p>
-                    <p className="text-white text-sm">{user?.fullName || user?.firstName}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-black/50 mb-0.5">Session Active</p>
+                    <p className="font-black text-base uppercase tracking-tight">{user?.fullName || user?.firstName}</p>
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-xs text-slate-500 font-mono mb-2 block">Subject</label>
-                  <input
-                    type="text"
-                    value={form.subject}
-                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    placeholder="What's this about?"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-electric-blue/50 transition-colors"
-                  />
+                <div className="space-y-6">
+                  {/* Subject Input */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-black mb-2 block">
+                      Transmission Subject
+                    </label>
+                    <input
+                      type="text"
+                      value={form.subject}
+                      onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                      placeholder="What is the objective?"
+                      className="w-full bg-white border-4 border-black p-4 text-black font-bold placeholder-black/30 focus:outline-none focus:bg-[#BFFF00]/20 focus:border-black transition-colors"
+                    />
+                  </div>
+
+                  {/* Message Input */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-black mb-2 block">
+                      Message Payload *
+                    </label>
+                    <textarea
+                      value={form.message}
+                      onChange={(e) => setForm({ ...form, message: e.target.value })}
+                      placeholder="Detail your parameters here..."
+                      rows={5}
+                      className="w-full bg-white border-4 border-black p-4 text-black font-bold placeholder-black/30 focus:outline-none focus:bg-[#BFFF00]/20 focus:border-black transition-colors resize-none"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-xs text-slate-500 font-mono mb-2 block">Message *</label>
-                  <textarea
-                    value={form.message}
-                    onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    placeholder="Tell me about your project or idea..."
-                    rows={6}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-electric-blue/50 transition-colors resize-none"
-                  />
-                </div>
-
+                {/* Submit Button */}
                 <motion.button
                   type="submit"
                   disabled={loading}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-electric-blue to-neon-purple text-white font-semibold text-sm glow-blue disabled:opacity-50 transition-all"
+                  whileHover={!loading ? { y: -4, x: -4, boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)" } : {}}
+                  className="w-full flex items-center justify-center gap-3 py-5 bg-black text-[#BFFF00] border-4 border-black font-black uppercase tracking-widest disabled:opacity-50 transition-all cursor-pointer hover:bg-[#BFFF00] hover:text-black mt-4"
                 >
-                  {loading ? <><Loader2 size={16} className="animate-spin" /> Sending...</> : <><Send size={16} /> Send Message</>}
+                  {loading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin stroke-[3px]" /> Transmitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={20} className="stroke-[3px]" /> Dispatch Data
+                    </>
+                  )}
                 </motion.button>
               </form>
             )}
           </motion.div>
+
         </div>
       </div>
     </section>

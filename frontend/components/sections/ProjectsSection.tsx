@@ -3,50 +3,68 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Terminal } from 'lucide-react';
 import { Project } from '@/types';
 import ProjectCard from '../../components/projects/ProjectCard';
 import ProjectModal from '../../components/projects/ProjectModal';
 
-
+function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="mb-12 md:mb-16">
+      <motion.div 
+        className="inline-block bg-[#BFFF00] text-black font-bold text-xs md:text-sm mb-4 px-3 py-1 tracking-[0.2em] uppercase border-2 border-[#BFFF00]"
+      >
+        {subtitle}
+      </motion.div>
+      <h2 className="font-black text-5xl md:text-7xl lg:text-8xl tracking-tighter uppercase text-white leading-none">
+        {title}
+      </h2>
+      <div className="mt-6 w-full max-w-sm h-2 bg-[#BFFF00]" />
+    </div>
+  );
+}
 
 export default function ProjectsSection({ projects }: { projects: Project[] }) {
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.05 });
   const [selected, setSelected] = useState<Project | null>(null);
 
-  return (
-    <section id="projects" ref={ref} className="relative py-32 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-neon-purple/3 to-transparent" />
+  // Filter out any blank rows or projects missing a title before rendering
+  const validProjects = projects ? projects.filter((p) => p && p.title) : [];
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
+  return (
+    <section id="projects" ref={ref} className="relative py-24 md:py-32 bg-black text-white font-sans selection:bg-[#BFFF00] selection:text-black border-y-4 border-black">
+      
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <p className="text-neon-purple font-mono text-sm mb-3 tracking-widest uppercase">// what I built</p>
-          <h2 className="font-display text-4xl lg:text-5xl font-black gradient-text">Featured Projects</h2>
-          <div className="mt-4 mx-auto w-24 h-0.5 bg-gradient-to-r from-electric-blue to-neon-purple rounded-full" />
+          <SectionTitle title="Execution" subtitle="// WHAT I BUILT" />
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.length > 0 ? (
-            projects.map((project, i) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+          {validProjects.length > 0 ? (
+            validProjects.map((project, i) => (
               <ProjectCard
-                key={project.id}
+                key={project.id || `project-${i}`}
                 project={project}
                 index={i}
                 onClick={() => setSelected(project)}
               />
             ))
           ) : (
+            // Brutalist Loading Skeletons (shows while fetching or if all data is invalid)
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="glass rounded-2xl overflow-hidden border border-white/5 h-72 animate-pulse">
-                <div className="h-44 bg-white/5" />
-                <div className="p-5 space-y-2">
-                  <div className="h-4 bg-white/5 rounded w-3/4" />
-                  <div className="h-3 bg-white/5 rounded w-full" />
+              <div key={i} className="bg-black border-4 border-white/20 border-dashed p-8 h-[480px] flex flex-col items-center justify-center relative group hover:border-[#BFFF00] transition-colors">
+                <div className="absolute top-4 left-4 font-bold text-[10px] uppercase tracking-widest text-white/40 group-hover:text-[#BFFF00]">
+                  System.load({i})
+                </div>
+                <Terminal size={48} className="text-white/20 mb-6 group-hover:text-[#BFFF00] transition-colors" strokeWidth={1.5} />
+                <div className="w-full space-y-4">
+                  <div className="h-8 bg-white/10 w-3/4 group-hover:bg-[#BFFF00]/20 transition-colors" />
+                  <div className="h-4 bg-white/10 w-full group-hover:bg-[#BFFF00]/20 transition-colors" />
+                  <div className="h-4 bg-white/10 w-5/6 group-hover:bg-[#BFFF00]/20 transition-colors" />
                 </div>
               </div>
             ))
@@ -56,15 +74,15 @@ export default function ProjectsSection({ projects }: { projects: Project[] }) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.8 }}
-          className="text-center mt-12"
+          transition={{ delay: 0.4 }}
+          className="mt-16 md:mt-24 flex justify-center"
         >
           <a href="/projects">
             <motion.button
-              whileHover={{ scale: 1.05, x: 5 }}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass gradient-border text-slate-300 hover:text-white text-sm font-medium transition-all"
+              whileHover={{ y: -4, x: -4, boxShadow: "8px 8px 0px 0px rgba(191,255,0,1)" }}
+              className="inline-flex items-center gap-3 px-8 py-4 font-black text-sm md:text-base uppercase tracking-widest border-4 border-[#BFFF00] bg-black text-[#BFFF00] transition-all hover:bg-[#BFFF00] hover:text-black cursor-pointer"
             >
-              View All Projects <ArrowRight size={16} />
+              Access All Projects <ArrowRight size={20} className="stroke-[3px]" />
             </motion.button>
           </a>
         </motion.div>

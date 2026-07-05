@@ -2,128 +2,165 @@
 
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { MapPin, Mail, Briefcase, GraduationCap, Target, Calendar } from 'lucide-react';
+import { MapPin, Mail, Briefcase, GraduationCap, Target } from 'lucide-react';
 import { About } from '@/types';
 
 function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="text-center mb-16">
-      <motion.p className="text-electric-blue font-mono text-sm mb-3 tracking-widest uppercase">
+    <div className="mb-12 md:mb-20">
+      <motion.div 
+        className="inline-block bg-black text-[#BFFF00] font-bold text-xs md:text-sm mb-4 px-3 py-1 tracking-[0.2em] uppercase border-2 border-black"
+      >
         {subtitle}
-      </motion.p>
-      <h2 className="font-display text-4xl lg:text-5xl font-black">
-        <span className="gradient-text">{title}</span>
+      </motion.div>
+      <h2 className="font-black text-5xl md:text-7xl lg:text-8xl tracking-tighter uppercase text-black leading-none">
+        {title}
       </h2>
-      <div className="mt-4 mx-auto w-24 h-0.5 bg-gradient-to-r from-electric-blue to-neon-purple rounded-full" />
+      <div className="mt-6 w-full max-w-sm h-2 bg-black" />
     </div>
   );
 }
 
 export default function AboutSection({ about }: { about: About | null }) {
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.05 });
 
   return (
-    <section id="about" ref={ref} className="relative py-32 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-neon-purple/3 to-transparent" />
+    // Removed overflow-hidden here so sticky positioning works correctly
+    <section id="about" ref={ref} className="relative py-24 md:py-32 bg-[#BFFF00] text-black font-sans selection:bg-black selection:text-[#BFFF00]">
+      
+      {/* Brutalist Background Accents */}
+      <div className="absolute top-40 right-0 w-32 h-32 border-[12px] border-black opacity-10 translate-x-1/2 pointer-events-none hidden lg:block" />
+      <div className="absolute bottom-40 left-10 w-24 h-24 bg-black opacity-10 pointer-events-none hidden lg:block" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <SectionTitle title="About Me" subtitle="// who I am" />
+          <SectionTitle title="System Info" subtitle="// ABOUT ME" />
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
-          {/* Left — Info cards */}
-          <div className="space-y-6">
+        {/* NEW LAYOUT: Sticky Sidebar (Left) + Content (Right)
+          This ensures perfect organization and readability.
+        */}
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start relative">
+          
+          {/* =======================================================
+              LEFT COLUMN: STICKY SIDEBAR (Bio & Details)
+          ======================================================= */}
+          <div className="lg:col-span-5 flex flex-col gap-8 lg:sticky lg:top-32 lg:pb-12">
+            
+            {/* Bio Card */}
             <motion.div
-              initial={{ opacity: 0, x: -40 }}
+              initial={{ opacity: 0, x: -30 }}
               animate={inView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="glass rounded-2xl p-6 gradient-border"
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="bg-white border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
             >
-              <p className="text-slate-300 leading-relaxed text-base">
-                {about?.bio || 'Passionate about building intelligent systems and beautiful web experiences. Currently pursuing BTech in CSE with specialization in AI/ML.'}
+              <h3 className="font-black text-3xl uppercase tracking-tighter mb-4 border-b-4 border-black pb-4">
+                Architecture
+              </h3>
+              <p className="text-black font-semibold leading-relaxed text-sm md:text-base">
+                {about?.bio || 'Passionate software developer engineering intelligent systems and robust web architecture. Currently pursuing a BTech in CSE with a specialization in AI/ML at MCKV Institute of Engineering, driving focus into Java, full-stack environments, and core data logic.'}
               </p>
             </motion.div>
 
-            {/* Details */}
+            {/* Details Grid */}
             <motion.div
-              initial={{ opacity: 0, x: -40 }}
+              initial={{ opacity: 0, x: -30 }}
               animate={inView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
               className="grid grid-cols-2 gap-4"
             >
               {[
-                { icon: MapPin, label: 'Location', value: about?.location || 'India', color: 'text-electric-blue' },
-                { icon: Mail, label: 'Email', value: about?.email || 'asif@email.com', color: 'text-neon-purple' },
-                { icon: Target, label: 'Focus', value: 'AI/ML + Web Dev', color: 'text-cyan-glow' },
-                // { icon: Calendar, label: 'Experience', value: `${about?.years_of_experience || 0}+ Years`, color: 'text-emerald-accent' },
+                { icon: MapPin, label: 'Location', value: about?.location || 'India' },
+                { icon: Target, label: 'Focus', value: 'Full Stack & AI' },
               ].map((item) => (
-                <div key={item.label} className="glass rounded-xl p-4 border border-white/5 hover:border-electric-blue/20 transition-all group">
-                  <item.icon size={16} className={`${item.color} mb-2`} />
-                  <p className="text-xs text-slate-500 mb-1">{item.label}</p>
-                  <p className="text-sm text-slate-300 font-medium truncate">{item.value}</p>
+                <div key={item.label} className="bg-white border-4 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <item.icon size={24} className="text-black mb-2 stroke-[3px]" />
+                  <p className="text-[10px] font-bold text-black uppercase tracking-widest opacity-60 mb-1">{item.label}</p>
+                  <p className="text-sm font-black text-black truncate uppercase">{item.value}</p>
                 </div>
               ))}
+              
+              {/* Email takes full width of the sub-grid */}
+              <div className="col-span-2 bg-black text-white border-4 border-black p-4 shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                 <Mail size={24} className="text-[#BFFF00] mb-2 stroke-[3px]" />
+                 <p className="text-[10px] font-bold text-[#BFFF00] uppercase tracking-widest opacity-80 mb-1">Email Connection</p>
+                 <p className="text-sm font-black truncate uppercase">{about?.email || 'skasifx86@gmail.com'}</p>
+              </div>
             </motion.div>
 
-            {/* Career goal */}
+            {/* Career Goal */}
             {about?.career_goal && (
               <motion.div
-                initial={{ opacity: 0, x: -40 }}
+                initial={{ opacity: 0, x: -30 }}
                 animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                className="glass rounded-xl p-5 border border-cyan-glow/20"
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="bg-[#BFFF00] border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
               >
-                <div className="flex items-center gap-2 mb-3">
-                  <Target size={16} className="text-cyan-glow" />
-                  <span className="text-cyan-glow text-sm font-semibold">Career Goal</span>
+                <div className="flex items-center gap-3 mb-3 border-b-4 border-black pb-3">
+                  <Target size={24} className="text-black stroke-[3px]" />
+                  <span className="text-black font-black uppercase tracking-widest text-xl">Target Vector</span>
                 </div>
-                <p className="text-slate-400 text-sm leading-relaxed">{about.career_goal}</p>
+                <p className="font-bold text-sm leading-relaxed">{about.career_goal}</p>
               </motion.div>
             )}
           </div>
 
-          {/* Right — Timeline */}
-          <div className="space-y-8">
+          {/* =======================================================
+              RIGHT COLUMN: SCROLLABLE TIMELINES
+          ======================================================= */}
+          <div className="lg:col-span-7 flex flex-col gap-16 lg:pt-0 pt-8 mt-4 lg:mt-0">
             
-            {/* Experience */}
+            {/* --- EXPERIENCE SECTION --- */}
             {(about?.experience?.length ?? 0) > 0 && (
               <motion.div
-                initial={{ opacity: 0, x: 40 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.8, delay: 0.3 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <div className="flex items-center gap-2 mb-6">
-                  <Briefcase size={18} className="text-electric-blue" />
-                  <h3 className="font-display text-lg font-bold text-white">Experience</h3>
+                <div className="flex items-center gap-4 mb-10 bg-black text-white p-4 inline-flex border-4 border-black shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
+                  <Briefcase size={28} className="text-[#BFFF00] stroke-[3px]" />
+                  <h3 className="font-black text-3xl uppercase tracking-tighter">Experience</h3>
                 </div>
-                <div className="space-y-4 relative">
-                  <div className="absolute left-3 top-0 bottom-0 w-px bg-gradient-to-b from-electric-blue/50 to-transparent" />
+
+                {/* Left-Aligned Solid Timeline */}
+                <div className="pl-6 md:pl-10 border-l-8 border-black space-y-12 relative">
                   {about?.experience?.map((exp, i) => (
                     <motion.div
                       key={exp.id}
-                      initial={{ opacity: 0, x: 20 }} // Horizontal animation initial state
-                      animate={inView ? { opacity: 1, x: 0 } : {}} // Horizontal animation target state
-                      transition={{ delay: 0.4 + i * 0.1 }}
-                      className="pl-8 relative"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={inView ? { opacity: 1, x: 0 } : {}}
+                      transition={{ delay: 0.3 + i * 0.1 }}
+                      className="relative"
                     >
-                      <div className="absolute left-1.5 top-2 w-3 h-3 rounded-full bg-electric-blue glow-blue border-2 border-deep-dark" />
-                      <div className="glass rounded-xl p-4 border border-white/5 hover:border-electric-blue/20 transition-all">
-                        <div className="flex justify-between items-start mb-1">
-                          <h4 className="font-semibold text-white text-sm">{exp.role}</h4>
-                          <span className="text-xs text-slate-500 font-mono">{exp.start_date} — {exp.end_date}</span>
+                      {/* Timeline Node */}
+                      <div className="absolute -left-[40px] md:-left-[56px] top-0 w-6 h-6 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" />
+                      
+                      {/* Card Content */}
+                      <div className="bg-white border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
+                        <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4 mb-4">
+                          <div>
+                            <h4 className="font-black text-2xl uppercase tracking-tight">{exp.role}</h4>
+                            <p className="font-black text-lg text-black/60 uppercase mt-1">{exp.company}</p>
+                          </div>
+                          <span className="font-bold text-xs uppercase tracking-widest bg-[#BFFF00] text-black border-2 border-black px-3 py-1 h-fit whitespace-nowrap">
+                            {exp.start_date} — {exp.end_date}
+                          </span>
                         </div>
-                        <p className="text-electric-blue text-xs font-medium mb-2">{exp.company}</p>
-                        {exp.description && <p className="text-slate-400 text-xs leading-relaxed">{exp.description}</p>}
+                        
+                        {exp.description && (
+                          <p className="text-sm font-semibold leading-relaxed mb-6 mt-4 border-t-2 border-dashed border-black/20 pt-4">
+                            {exp.description}
+                          </p>
+                        )}
+                        
                         {exp.technologies?.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {exp.technologies.slice(0, 4).map((tech) => (
-                              <span key={tech} className="px-2 py-0.5 rounded-md bg-electric-blue/10 text-electric-blue text-xs border border-electric-blue/10">
+                          <div className="flex flex-wrap gap-2">
+                            {exp.technologies.map((tech) => (
+                              <span key={tech} className="px-3 py-1 bg-black text-white text-[10px] font-bold uppercase tracking-widest border-2 border-black">
                                 {tech}
                               </span>
                             ))}
@@ -136,50 +173,68 @@ export default function AboutSection({ about }: { about: About | null }) {
               </motion.div>
             )}
 
-            {/* Education */}
-            {(about?.education?.length ?? 0) > 0 && (
-              <motion.div
-                initial={{ opacity: 0, x: 40 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.8, delay: 0.5 }}
-              >
-                <div className="flex items-center gap-2 mb-6">
-                  <GraduationCap size={18} className="text-neon-purple" />
-                  <h3 className="font-display text-lg font-bold text-white">Education</h3>
-                </div>
-                <div className="space-y-4 relative">
-                  <div className="absolute left-3 top-0 bottom-0 w-px bg-gradient-to-b from-neon-purple/50 to-transparent" />
+            {/* --- EDUCATION SECTION --- */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <div className="flex items-center gap-4 mb-10 bg-black text-white p-4 inline-flex border-4 border-black shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
+                <GraduationCap size={28} className="text-[#BFFF00] stroke-[3px]" />
+                <h3 className="font-black text-3xl uppercase tracking-tighter">Education</h3>
+              </div>
+              
+              {(about?.education?.length ?? 0) > 0 ? (
+                <div className="pl-6 md:pl-10 border-l-8 border-black space-y-12 relative">
                   {about?.education?.map((edu, i) => (
                     <motion.div
                       key={edu.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={inView ? { opacity: 1, y: 0 } : {}}
-                      transition={{ delay: 0.6 + i * 0.1 }}
-                      className="pl-8 relative"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={inView ? { opacity: 1, x: 0 } : {}}
+                      transition={{ delay: 0.5 + i * 0.1 }}
+                      className="relative"
                     >
-                      <div className="absolute left-1.5 top-2 w-3 h-3 rounded-full bg-neon-purple glow-purple border-2 border-deep-dark" />
-                      <div className="glass rounded-xl p-4 border border-white/5 hover:border-neon-purple/20 transition-all">
-                        <div className="flex justify-between items-start mb-1">
-                          <h4 className="font-semibold text-white text-sm">{edu.degree}</h4>
-                          <span className="text-xs text-slate-500 font-mono">{edu.start_date} — {edu.end_date}</span>
+                      {/* Timeline Node */}
+                      <div className="absolute -left-[40px] md:-left-[56px] top-0 w-6 h-6 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" />
+                      
+                      {/* Card Content */}
+                      <div className="bg-white border-4 border-black p-6 md:p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
+                        <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4 mb-4">
+                          <div>
+                            <h4 className="font-black text-2xl uppercase tracking-tight">{edu.degree}</h4>
+                            <p className="font-black text-lg text-black/60 uppercase mt-1">{edu.institution}</p>
+                          </div>
+                          <span className="font-bold text-xs uppercase tracking-widest bg-[#BFFF00] text-black border-2 border-black px-3 py-1 h-fit whitespace-nowrap">
+                            {edu.start_date} — {edu.end_date}
+                          </span>
                         </div>
-                        <p className="text-neon-purple text-xs font-medium mb-1">{edu.institution}</p>
-                        {edu.field && <p className="text-slate-400 text-xs">{edu.field}</p>}
-                        {edu.gpa && <p className="text-emerald-accent text-xs mt-1">GPA: {edu.gpa}</p>}
+
+                        <div className="mt-4 border-t-2 border-dashed border-black/20 pt-4 flex flex-col gap-2">
+                          {edu.field && (
+                            <p className="text-sm font-bold uppercase tracking-wide">
+                              <span className="opacity-50 mr-2">Focus:</span> {edu.field}
+                            </p>
+                          )}
+                          {edu.gpa && (
+                            <p className="text-sm font-black uppercase tracking-wide">
+                              <span className="opacity-50 mr-2">GPA:</span> {edu.gpa}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-              </motion.div>
-            )}
-
-            {/* Show placeholder if no data yet */}
-            {(!about?.education?.length) && (
-              <div className="glass rounded-xl p-8 border border-white/5 text-center">
-                <GraduationCap size={40} className="text-neon-purple mx-auto mb-3 opacity-50" />
-                <p className="text-slate-500 text-sm">Add your education from the admin dashboard</p>
-              </div>
-            )}
+              ) : (
+                <div className="bg-white border-4 border-black border-dashed p-12 text-center max-w-xl">
+                  <GraduationCap size={48} className="mx-auto mb-4 stroke-[2px] opacity-40" />
+                  <p className="font-bold uppercase tracking-widest text-sm opacity-60">
+                    Awaiting academic telemetry from dashboard...
+                  </p>
+                </div>
+              )}
+            </motion.div>
+            
           </div>
         </div>
       </div>

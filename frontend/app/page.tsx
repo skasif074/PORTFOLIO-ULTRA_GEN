@@ -11,13 +11,11 @@ import SkillsSection from '@/components/sections/SkillsSection';
 import ProjectsSection from '@/components/sections/ProjectsSection';
 import ContactSection from '@/components/sections/ContactSection';
 import FooterSection from '@/components/sections/FooterSection';
-import ParticleBackground from '@/components/animations/ParticleBackground';
-import ScrollProgress from '@/components/animations/ScrollProgress';
-import CursorGlow from '@/components/animations/CursorGlow';
 import LoadingScreen from '@/components/animations/LoadingScreen';
 import ChatWidget from '@/components/chat/ChatWidget';
 import AchievementsSection from '@/components/sections/AchievementsSection';
 import CertificationsSection from '@/components/sections/CertificationsSection';
+
 export default function HomePage() {
   const { user, isLoaded } = useUser();
   const [about, setAbout] = useState<About | null>(null);
@@ -51,11 +49,19 @@ export default function HomePage() {
   if (loading || !isLoaded) return <LoadingScreen />;
 
   return (
-    <main className="relative min-h-screen bg-deep-dark overflow-x-hidden">
-      <ParticleBackground />
-      <CursorGlow />
-      <ScrollProgress />
+    <main className="relative min-h-screen bg-black overflow-x-hidden font-sans selection:bg-[#BFFF00] selection:text-black">
+      
+      {/* Persistent Global Nav */}
       <Navbar about={about} />
+
+      {/* 
+        HARD CUT STACKING
+        The components are now stacked directly on top of each other. 
+        Because they have solid backgrounds (Yellow/Black) and thick borders, 
+        scrolling between them will create an immediate, sharp transition 
+        exactly like the reference video.
+      */}
+      
       <HeroSection about={about} />
       <AboutSection about={about} />
       <SkillsSection skills={skills} />
@@ -64,6 +70,7 @@ export default function HomePage() {
       <CertificationsSection />
       <ContactSection about={about} />
       <FooterSection about={about} />
+
       {/* Only show chat bubble to non-admin users */}
       {!isAdmin && <ChatWidget />}
     </main>
